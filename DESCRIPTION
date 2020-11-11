@@ -1,6 +1,6 @@
 Package: ldrd2020050
 Title: Analysis Support for Fermilab LDRD 2020-050
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person(given = "Marc",
            family = "Paterno",
