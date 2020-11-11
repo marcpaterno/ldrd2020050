@@ -1,0 +1,23 @@
+Package: ldrd2020050
+Title: Analysis Support for Fermilab LDRD 2020-050
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Marc",
+           family = "Paterno",
+           role = c("aut", "cre"),
+           email = "paterno@fnal.gov",
+           comment = c(ORCID = "0000-0003-0808-8388"))
+Description: This package provides utility functions to help in the analysis
+             of performance data for integration algorithms in the Fermilab
+             LDRD project "Numerical Integration on GPUs" (LDRD 2020-050).
+License: BSD_3_clause + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports:
+    arrow(>= 2.0.0),
+    checkmate(>= 2.0.0)
+Suggests: 
+    testthat(>= 3.0.0),
+    tibble(>= 3.0.4)
