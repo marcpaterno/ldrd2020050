@@ -8,7 +8,6 @@
 #' @return The object read from the file.
 #' @export
 #'
-#' @examples
 read_feather_or_rds <- function(name) {
   checkmate::assert_scalar(name)
   checkmate::assert_character(name)

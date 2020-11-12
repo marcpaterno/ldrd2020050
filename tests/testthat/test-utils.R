@@ -21,3 +21,20 @@ test_that("%nin%  works", {
   b <- 2:4
   expect_equal(a %nin% b, c(TRUE, FALSE, FALSE, FALSE, TRUE))
 })
+
+test_that("adding lengths works", {
+  d <- readRDS("small_dims.rds")
+  expect_s3_class(d, "tbl_df")
+  d_with_lengths <- add_lengths(d)
+  expect_s3_class(d_with_lengths, "tbl_df")
+  expect_length(d_with_lengths, 2*(length(d) - 2))
+  expect_equal(nrow(d_with_lengths), nrow(d))
+})
+
+test_that("adding vol works", {
+  d <- add_lengths(readRDS("small_dims.rds"))
+  expect_s3_class(d, "tbl_df")
+  d_with_vol <- add_volume(d)
+  expect_length(d_with_vol, length(d) + 1)
+  expect_equal(nrow(d_with_vol), nrow(d))
+})
