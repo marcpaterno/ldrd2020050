@@ -46,51 +46,75 @@ rds_to_feather <- function(infile, outfile,
   write_feather(x, outfile, compression = compression)
 }
 
-#' Augment an integration analysis dataframe with region lengths.
+#' Determine the number of dimensions in an integration analysis dataframe
 #'
-#' @param d an integration analysis tibble
+#' @param d an integration analysis dataframe
 #'
-#' @return a tibble, augmented to carry a length for each dimension
+#' @return the dimensionality of the integrand represented
 #' @export
-#' @importFrom dplyr select mutate inner_join
-#' @importFrom tidyr pivot_longer separate pivot_wider
-#' @importFrom checkmate assert_tibble
-#' @importFrom stringr str_extract
-#' @importFrom tidyselect starts_with
-#' @importFrom magrittr %>%
-#' @importFrom rlang .data
 #'
-add_lengths <- function(d)
-{
-  assert_tibble(d)
-  dims <- select(d, .data$iteration, .data$id, starts_with("dim")) %>%
-    pivot_longer(cols = starts_with("dim")) %>%
-    separate(.data$name, into=c("dim", "edge")) %>%
-    mutate(dim = as.integer(str_extract(.data$dim, "[[:digit:]]+"))) %>%
-    pivot_wider(names_from = .data$edge, values_from = .data$value)  %>%
-    mutate(len = .data$hi - .data$lo) %>%
-    pivot_wider(names_from = .data$dim, values_from = c(.data$lo, .data$hi, .data$len))
-
-  inner_join(select(dims, .data$iteration, .data$id, starts_with("len")),
-             d,
-             by = c("iteration", "id"))
+n_dimensions <- function(d) {
+  n_dim_cols <- length(grep("^dim", names(d)))
+  # If we don't have an even number of columns with 'dimension' names, then we
+  # have the wrong kind of dataframe
+  stopifnot(n_dim_cols %% 2 == 0)
+  n_dim_cols/2
 }
 
-#' Augment an integration analysis dataframe with volumes
+#' Determine the names of the column dimensions
 #'
-#' @param d a tibble containing lengths for each dimension (see \code{add_lengths})
+#' @param d an integration analysis dataframe
 #'
-#' @return a tibble, augmented to carry a total volume
+#' @return a character vector containing the names of all dimension columns
 #' @export
-#' @importFrom checkmate assert_tibble
-#' @importFrom dplyr c_across rowwise summarize
-#' @importFrom tidyselect starts_with
-#' @importFrom magrittr %>%
-#' @importFrom rlang .data
-add_volume <- function(d) {
-  assert_tibble(d)
-  tmp <-
-    rowwise(d, .data$iteration, .data$id) %>%
-    summarize(vol = prod(c_across(starts_with("len"))), .groups = "drop")
-  inner_join(d, tmp, by = c("iteration", "id"))
+#'
+get_dim_names <- function(d) {
+  all_names <- names(d)
+  all_names[grep("^dim", all_names)]
 }
+
+#' Turn dimension names into canonical form
+#'
+#' @param d an integration analysis dataframe
+#'
+#' @return a copy of the input dataframe, with dimension names canonicalized
+#' @export
+#' @importFrom checkmate assert_count
+#' @importFrom purrr map2_chr
+#'
+canonicalize_dim_names <- function(d) {
+  dim_names <- get_dim_names(d)
+  n_dims <- n_dimensions(d)
+  assert_count(n_dims, positive = TRUE)
+  dim_ids <- stringr::str_match(dim_names, "dim.*([[:digit:]]+)")[,2]
+  templates <- rep(c("dim_%s_lo", "dim_%s_hi"), n_dims)
+  new_names <- map2_chr(templates, dim_ids, sprintf)
+  names(d)[c((length(d) + 1 - n_dims*2):length(d))] <- new_names
+  d
+}
+
+#' Augment a raw integration analysis dataframe with lengths and volumes
+#'
+#' @param d : a raw integration dataframe
+#'
+#' @return a copy of the input dataframe, with dimension names canonicalized and
+#'     dimension lengths and volume added
+#' @export
+#' @importFrom dplyr pull
+#'
+augment_raw_dataframe <- function(d) {
+  tmp <- canonicalize_dim_names(d)
+  # Add vol = 1 (for all entries)
+  tmp$vol <- 1
+  # Iterate through dimensions numbers 'n'
+  last_dim = n_dimensions(d) - 1
+  for (i in 0:last_dim) {
+    new_length <-
+      pull(tmp, sprintf("dim_%d_hi", i)) -
+      pull(tmp, sprintf("dim_%d_lo", i))
+    tmp[sprintf("len_%d", i)] <- new_length
+    tmp$vol = tmp$vol * new_length
+  }
+  tmp
+}
+
