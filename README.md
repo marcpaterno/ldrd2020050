@@ -1,7 +1,7 @@
 # ldrd2020050
 
 <!-- badges: start -->
-[![Build status](https://travis-ci.com/marcpaterno/ldrd2020050.svg?branch=master)](https://travis-ci.com/marcpaterno/ldrd2020050)
+[![R build status](https://github.com/marcpaterno/ldrd2020050/workflows/R-CMD-check/badge.svg)](https://github.com/marcpaterno/ldrd2020050/actions)
 <!-- badges: end -->
 
 This package provides utility functions to help in the analysis of performance
