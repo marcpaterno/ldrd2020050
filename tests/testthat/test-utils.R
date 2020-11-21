@@ -50,3 +50,14 @@ test_that("canonicalize_dim_names works", {
   expect_equal(names(new)[3:6],
                c("dim_0_lo", "dim_0_hi", "dim_1_lo", "dim_1_hi"))
 })
+
+test_that("make_iteration_dataframe works", {
+  aug <- readRDS("two_iters.rds")
+  by_iter <- make_iteration_dataframe(aug)
+  expect_equal(nrow(by_iter), 2L)
+  expect_equal(by_iter$estimate, c(10., 9.))
+  expect_equal(by_iter$errorest, c(2., 0.75))
+  expect_equal(by_iter$nregions,  c(1L, 2L))
+  expect_equal(by_iter$low, c(8., 8.25))
+  expect_equal(by_iter$high, c(12., 9.75))
+})

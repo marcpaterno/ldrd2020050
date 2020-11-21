@@ -125,3 +125,26 @@ augment_raw_dataframe <- function(d) {
     relocate(starts_with("dim"), .after = last_col())
 }
 
+
+#' Summarize an augmented raw integration dataframe by iteration
+#'
+#' @param d : an augmented raw integration dataframe
+#'
+#' @return a dataframe containing a per-iteration summary of the input dataframe
+#' @export
+#' @importFrom dplyr group_by n summarize
+#' @importFrom magrittr `%>%`
+#' @importFrom rlang .data
+#'
+make_iteration_dataframe <- function(d)
+{
+  d %>%
+    group_by(.data$iteration) %>%
+    summarize(estimate = sum(.data$estimate),
+              errorest = sum(.data$errorest),
+              low = .data$estimate - .data$errorest,
+              high = .data$estimate + .data$errorest,
+              vol = sum(.data$vol),
+              nregions = n(),
+              .groups = "drop")
+}
