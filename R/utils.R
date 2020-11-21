@@ -46,7 +46,7 @@ rds_to_feather <- function(infile, outfile,
   write_feather(x, outfile, compression = compression)
 }
 
-#' Determine the number of dimensions in an integration analysis dataframe
+  #' Determine the number of dimensions in an integration analysis dataframe
 #'
 #' @param d an integration analysis dataframe
 #'
@@ -100,10 +100,15 @@ canonicalize_dim_names <- function(d) {
 #' @return a copy of the input dataframe, with dimension names canonicalized and
 #'     dimension lengths and volume added
 #' @export
-#' @importFrom dplyr pull
+#' @importFrom dplyr pull relocate
+#' @importFrom tibble is_tibble as_tibble
+#' @importFrom tidyselect last_col starts_with
+#' @importFrom magrittr `%>%`
 #'
 augment_raw_dataframe <- function(d) {
   tmp <- canonicalize_dim_names(d)
+  if (!is_tibble(tmp))
+    tmp <- as_tibble(tmp)
   # Add vol = 1 (for all entries)
   tmp$vol <- 1
   # Iterate through dimensions numbers 'n'
@@ -115,6 +120,8 @@ augment_raw_dataframe <- function(d) {
     tmp[sprintf("len_%d", i)] <- new_length
     tmp$vol = tmp$vol * new_length
   }
-  tmp
+  tmp %>%
+    relocate(starts_with("len"), .after = last_col()) %>%
+    relocate(starts_with("dim"), .after = last_col())
 }
 
