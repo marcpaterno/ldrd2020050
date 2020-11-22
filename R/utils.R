@@ -165,3 +165,49 @@ select_finished <- function(d)
     filter(.data$iteration < max(.data$iteration))
 }
 
+#' Summarize finished regions by iteration
+#'
+#' @param d : a raw integration dataframe containing only finished regions.
+#'
+#' @return a dataframe with one row per iteration, summarizing the input data
+#' @export
+#' @importFrom dplyr left_join mutate
+#' @importFrom tibble tibble
+#' @importFrom tidyr replace_na
+#'
+summarize_finished_by_iteration <- function(d) {
+  # Initial summary: will only have rows for iterations that have
+  # newly-finished regions
+  tmp <-
+    group_by(d, .data$iteration) %>%
+    summarize(
+      n = n(),
+      min = min(.data$estimate),
+      max = max(.data$estimate),
+      estimate = sum(.data$estimate),
+      errorest = sum(.data$errorest),
+      vol = sum(.data$vol),
+      .groups = "drop",
+    )
+  # Add rows for iterations that had no finished regions.
+  # They contain all zeros.
+  tmp <-
+    left_join(tibble(iteration = 0:max(tmp$iteration)),
+              tmp,
+              by = "iteration") %>%
+    replace_na(replace = list(
+      n = 0,
+      min = 0,
+      max = 0,
+      estimate = 0,
+      errorest = 0,
+      vol = 0
+    ))
+  # Add cumulative sum results.
+  tmp %>%
+    mutate(
+      tot.estimate = cumsum(.data$estimate),
+      tot.errorest = cumsum(.data$errorest),
+      tot.vol = cumsum(.data$vol)
+    )
+}

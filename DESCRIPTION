@@ -25,6 +25,7 @@ Imports:
     rlang(>= 0.4.8),
     stringr(>= 1.4.0),
     tibble(>= 3.0.4),
+    tidyr(>= 1.1.2),
     tidyselect(>= 1.1.0)
 Suggests: 
     testthat(>= 3.0.0)
