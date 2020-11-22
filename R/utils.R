@@ -148,3 +148,20 @@ make_iteration_dataframe <- function(d)
               nregions = n(),
               .groups = "drop")
 }
+
+#' Selected finished regions from an augmented integration dataframe
+#'
+#' @param d : an aumented raw integration dataframe
+#'
+#' @return a dataframe contained only finished regions
+#' @export
+#' @importFrom dplyr filter
+#' @importFrom rlang .data
+#'
+select_finished <- function(d)
+{
+  parents <- unique(d$parentID)
+  filter(d, .data$id %nin% parents) %>%
+    filter(.data$iteration < max(.data$iteration))
+}
+
