@@ -7,7 +7,7 @@
 summarize_finished_by_iteration(d)
 }
 \arguments{
-\item{d}{: a raw integration dataframe containing only finished regions.}
+\item{d}{: an augmented raw integration dataframe}
 }
 \value{
 a dataframe with one row per iteration, summarizing the input data

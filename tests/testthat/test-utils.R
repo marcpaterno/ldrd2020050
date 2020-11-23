@@ -61,3 +61,19 @@ test_that("make_iteration_dataframe works", {
   expect_equal(by_iter$low, c(8., 8.25))
   expect_equal(by_iter$high, c(12., 9.75))
 })
+
+test_that("selecting finished regions works", {
+  d <- readRDS("example_regions.rds")
+  finished <- select_finished(d)
+  expect_equal(nrow(finished), 2L)
+  expect_equal(finished$id, c(1, 3))
+})
+
+test_that("summarizing finished regions works", {
+  d <- readRDS("example_regions.rds") %>% augment_raw_dataframe()
+  finished.summary <- summarize_finished_by_iteration(d)
+  expect_equal(nrow(finished.summary), 4L)
+  expect_equal(finished.summary$iteration, 0L:3L)
+  expect_equal(finished.summary$estimate, c(0., 4., 3., 0.))
+  expect_equal(finished.summary$errorest, c(0., 0.5, 0.25, 0.))
+})

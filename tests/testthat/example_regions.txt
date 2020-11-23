@@ -1,0 +1,8 @@
+iteration,id,parentID,estimate,errorest,dim_0_low,dim_0_high,dim_1_low,dim_1_high,finished
+0,0,-1,16.,4.,5,9,0,4,FALSE
+1,1,0,4.,0.5,5,6,0,4,TRUE
+1,2,0,12.,3.0,6,9,0,4,FALSE
+2,3,2,3.,0.25,6,9,0,1,TRUE
+2,4,2,9.,2.0,6,9,1,4,FALSE
+3,5,4,6.,1.,6,8,1,4,FALSE
+3,6,4,3.,1.,8,9,1,4,FALSE

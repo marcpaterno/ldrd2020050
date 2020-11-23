@@ -157,6 +157,7 @@ make_iteration_dataframe <- function(d)
 #' @export
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
+#' @importFrom tibble add_row
 #'
 select_finished <- function(d)
 {
@@ -167,7 +168,7 @@ select_finished <- function(d)
 
 #' Summarize finished regions by iteration
 #'
-#' @param d : a raw integration dataframe containing only finished regions.
+#' @param d : an augmented raw integration dataframe
 #'
 #' @return a dataframe with one row per iteration, summarizing the input data
 #' @export
@@ -176,10 +177,9 @@ select_finished <- function(d)
 #' @importFrom tidyr replace_na
 #'
 summarize_finished_by_iteration <- function(d) {
-  # Initial summary: will only have rows for iterations that have
-  # newly-finished regions
+  finished <- select_finished(d)
   tmp <-
-    group_by(d, .data$iteration) %>%
+    group_by(finished, .data$iteration) %>%
     summarize(
       n = n(),
       min = min(.data$estimate),
@@ -192,7 +192,7 @@ summarize_finished_by_iteration <- function(d) {
   # Add rows for iterations that had no finished regions.
   # They contain all zeros.
   tmp <-
-    left_join(tibble(iteration = 0:max(tmp$iteration)),
+    left_join(tibble(iteration = 0:max(d$iteration)),
               tmp,
               by = "iteration") %>%
     replace_na(replace = list(
