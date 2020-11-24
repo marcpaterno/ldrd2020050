@@ -63,25 +63,10 @@ test_that("make_iteration_dataframe works", {
   aug <- readRDS("two_iters.rds")
   by_iter <- make_iteration_dataframe(aug)
   expect_equal(nrow(by_iter), 2L)
-  expect_equal(by_iter$estimate, c(10., 9.))
-  expect_equal(by_iter$errorest, c(2., 0.75))
-  expect_equal(by_iter$nregions,  c(1L, 2L))
-  expect_equal(by_iter$low, c(8., 8.25))
-  expect_equal(by_iter$high, c(12., 9.75))
-})
-
-test_that("selecting finished regions works", {
-  d <- readRDS("example_regions.rds")
-  finished <- select_finished(d)
-  expect_equal(nrow(finished), 2L)
-  expect_equal(finished$id, c(1, 3))
-})
-
-test_that("summarizing finished regions works", {
-  d <- readRDS("example_regions.rds") %>% augment_raw_dataframe()
-  finished.summary <- summarize_finished_by_iteration(d)
-  expect_equal(nrow(finished.summary), 4L)
-  expect_equal(finished.summary$iteration, 0L:3L)
-  expect_equal(finished.summary$estimate, c(0., 4., 3., 0.))
-  expect_equal(finished.summary$errorest, c(0., 0.5, 0.25, 0.))
+  expect_equal(by_iter$act.est, c(10., 3.))
+  expect_equal(by_iter$act.err, c(2, 0.25))
+  expect_equal(by_iter$act.nreg, c(1,1))
+  expect_equal(by_iter$act.vol, c(450., 80.))
+  expect_equal(by_iter$fin.vol, c(0., 40.))
+  # TODO: complete the testing of other columns
 })

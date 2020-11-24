@@ -1,6 +1,9 @@
 ---
 title: "Using ldrd2020050"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 3
 vignette: >
   %\VignetteIndexEntry{Using ldrd2020050}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,6 +19,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ldrd2020050)
+library(ggplot2)
 ```
 
 # Reading data
@@ -26,7 +30,57 @@ a file using `readRDS`.
 In this vignette, we will rely upon a dataset that is part of the package:
 
 ```{r}
-# data(rawcornerpeak)
-# head(rawcornerpeak)
+data(rawcornerpeak)
+head(rawcornerpeak)
+```
+
+This is what we call a *raw* integration dataframe.
+
+# Transform *raw* dataframe to our canonical tibble format
+
+Use `augment_raw_dataframe` to create an *augmented* integration dataframe.
+The augmented dataframe (actually a tibble) has some additional columns:
+a *length* for each
+dimension (`len_i` for dimension `i`),
+and a *volume* (`vol`).
+The `active` column from the raw dataframe is transformed from `integer` to `logical`.
+The names of the dimensions are also canonicalized, to the form `dim_i_lo` and `dim_i_hi`.
+
+```{r}
+cornerpeak <- augment_raw_dataframe(rawcornerpeak)
+cornerpeak
+```
+
+# Summarizing by iteration
+
+Most of our analysis is done on an *iteration summary* dataframe (actually a tibble).
+This dataframe contains one row per iteration.
+The column names that start with *act* summarize regions that are *active*,
+which means they are due to be split in the next iteration
+(if there is a next iteration).
+Column names that start with *fin* summarize regions that are *finished*,
+which means they will not be split,
+and also will not be present in the next iteration.
+Column names beginning with *it* are the combination of the *act* and *fin* columns;
+they represent that totals *just for the current iteration*.
+Column names beginning with *tot* represent the total values
+up to and including the current iteration.
+These are the values the integration routine would return,
+if it stopped at the given iteration.
+
+```{r}
+iter <- make_iteration_dataframe(cornerpeak)
+iter
+```
+
+# Sanity check plots
+
+Most important is that the integral estimate converges to a correct answer:
+
+```{r}
+ggplot(iter, aes(iteration, tot.est, ymin=tot.est-tot.err, ymax=tot.est+tot.err)) +
+  geom_errorbar(width = 0.2) +
+  geom_point() +
+  labs(x="iteration", y="Integral estimate")
 ```
 

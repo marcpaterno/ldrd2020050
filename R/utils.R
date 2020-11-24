@@ -126,89 +126,57 @@ augment_raw_dataframe <- function(d) {
     relocate(starts_with("dim"), .after = last_col())
 }
 
-
 #' Summarize an augmented raw integration dataframe by iteration
 #'
 #' @param d : an augmented raw integration dataframe
 #'
 #' @return a dataframe containing a per-iteration summary of the input dataframe
 #' @export
-#' @importFrom dplyr group_by n summarize
+#' @importFrom dplyr filter group_by left_join n summarize
 #' @importFrom magrittr `%>%`
 #' @importFrom rlang .data
-#'
-make_iteration_dataframe <- function(d)
-{
-  d %>%
-    group_by(.data$iteration) %>%
-    summarize(estimate = sum(.data$estimate),
-              errorest = sum(.data$errorest),
-              low = .data$estimate - .data$errorest,
-              high = .data$estimate + .data$errorest,
-              vol = sum(.data$vol),
-              nregions = n(),
-              .groups = "drop")
-}
-
-#' Selected finished regions from an augmented integration dataframe
-#'
-#' @param d : an aumented raw integration dataframe
-#'
-#' @return a dataframe contained only finished regions
-#' @export
-#' @importFrom dplyr filter
-#' @importFrom rlang .data
-#' @importFrom tibble add_row
-#'
-select_finished <- function(d)
-{
-  parents <- unique(d$parentID)
-  filter(d, .data$id %nin% parents) %>%
-    filter(.data$iteration < max(.data$iteration))
-}
-
-#' Summarize finished regions by iteration
-#'
-#' @param d : an augmented raw integration dataframe
-#'
-#' @return a dataframe with one row per iteration, summarizing the input data
-#' @export
-#' @importFrom dplyr left_join mutate
-#' @importFrom tibble tibble
+#' @importFrom checkmate assert_class
 #' @importFrom tidyr replace_na
 #'
-summarize_finished_by_iteration <- function(d) {
-  finished <- select_finished(d)
-  tmp <-
-    group_by(finished, .data$iteration) %>%
+make_iteration_dataframe <- function(d) {
+  assert_class(d, "tbl_df")
+  # summary of final regions
+  fdf <-
+    filter(d, .data$active == FALSE) %>%
+    group_by(.data$iteration) %>%
     summarize(
-      n = n(),
-      min = min(.data$estimate),
-      max = max(.data$estimate),
-      estimate = sum(.data$estimate),
-      errorest = sum(.data$errorest),
-      vol = sum(.data$vol),
-      .groups = "drop",
+      fin.est = sum(.data$estimate),
+      fin.err = sum(.data$errorest),
+      fin.nreg = n(),
+      fin.vol = sum(.data$vol),
+      .groups = "drop"
     )
-  # Add rows for iterations that had no finished regions.
-  # They contain all zeros.
-  tmp <-
-    left_join(tibble(iteration = 0:max(d$iteration)),
-              tmp,
-              by = "iteration") %>%
-    replace_na(replace = list(
-      n = 0,
-      min = 0,
-      max = 0,
-      estimate = 0,
-      errorest = 0,
-      vol = 0
-    ))
-  # Add cumulative sum results.
-  tmp %>%
-    mutate(
-      tot.estimate = cumsum(.data$estimate),
-      tot.errorest = cumsum(.data$errorest),
-      tot.vol = cumsum(.data$vol)
+  # summary of active regions
+  adf <-
+    filter(d, .data$active == TRUE) %>%
+    group_by(.data$iteration) %>%
+    summarize(
+      act.est = sum(.data$estimate),
+      act.err = sum(.data$errorest),
+      act.nreg = n(),
+      act.vol = sum(.data$vol),
+      .groups = "drop"
     )
+
+  # combine, using zeros where there are no final regions
+  left_join(adf, fdf, by="iteration") %>%
+    replace_na(list(fin.est = 0,
+                    fin.err = 0,
+                    fin.nreg = 0,
+                    fin.vol = 0)) %>%
+    # add combined data for each iteration
+    mutate(it.est = .data$act.est + .data$fin.est,
+           it.err  = .data$act.err + .data$fin.err,
+           it.nreg = .data$act.nreg + .data$fin.nreg,
+           it.vol = .data$act.vol + .data$fin.vol) %>%
+    # add cumulative results
+    mutate(tot.est = cumsum(.data$fin.est) + .data$act.est,
+           tot.err = cumsum(.data$fin.err) + .data$act.err,
+           tot.vol = cumsum(.data$fin.vol) + .data$act.vol,
+           tot.nreg = cumsum(.data$fin.nreg) + .data$act.nreg)
 }
