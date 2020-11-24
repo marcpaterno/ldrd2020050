@@ -28,5 +28,8 @@ Imports:
     tidyr(>= 1.1.2),
     tidyselect(>= 1.1.0)
 Suggests: 
-    testthat(>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
+VignetteBuilder: knitr

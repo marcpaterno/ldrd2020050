@@ -1,0 +1,32 @@
+---
+title: "Using ldrd2020050"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using ldrd2020050}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ldrd2020050)
+```
+
+# Reading data
+
+We generally store project data as dataframes, in the RDS format. Read such
+a file using `readRDS`.
+
+In this vignette, we will rely upon a dataset that is part of the package:
+
+```{r}
+# data(rawcornerpeak)
+# head(rawcornerpeak)
+```
+
