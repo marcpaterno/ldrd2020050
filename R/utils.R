@@ -89,7 +89,7 @@ canonicalize_dim_names <- function(d) {
   dim_ids <- stringr::str_match(dim_names, "dim.*([[:digit:]]+)")[,2]
   templates <- rep(c("dim_%s_lo", "dim_%s_hi"), n_dims)
   new_names <- map2_chr(templates, dim_ids, sprintf)
-  names(d)[c((length(d) + 1 - n_dims*2):length(d))] <- new_names
+  names(d)[grep("dim.*([[:digit:]]+)", names(d))] <- new_names
   d
 }
 
@@ -100,7 +100,7 @@ canonicalize_dim_names <- function(d) {
 #' @return a copy of the input dataframe, with dimension names canonicalized and
 #'     dimension lengths and volume added
 #' @export
-#' @importFrom dplyr pull relocate
+#' @importFrom dplyr pull relocate mutate
 #' @importFrom tibble is_tibble as_tibble
 #' @importFrom tidyselect last_col starts_with
 #' @importFrom magrittr `%>%`
@@ -121,6 +121,7 @@ augment_raw_dataframe <- function(d) {
     tmp$vol = tmp$vol * new_length
   }
   tmp %>%
+    mutate(active = as.logical(.data$active)) %>%
     relocate(starts_with("len"), .after = last_col()) %>%
     relocate(starts_with("dim"), .after = last_col())
 }

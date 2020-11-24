@@ -34,14 +34,15 @@ test_that("n_dimensions handles incorrect dataframe", {
 
 test_that("augmenting raw dataframe works", {
  d <- readRDS("small_dims.rds")
- expect_s3_class(d, "tbl_df")
+ expect_s3_class(d, "data.frame")
  d_with_lengths <- augment_raw_dataframe(d)
  expect_s3_class(d_with_lengths, "tbl_df")
- expect_length(d_with_lengths, 2*(length(d) - 2L) + 1L)
+ expect_length(d_with_lengths, length(d) + 3) # add two lengths + volume
  expect_equal(nrow(d_with_lengths), nrow(d))
  expect_equal(d_with_lengths$len_0, c(10, 2, 8))
  expect_equal(d_with_lengths$len_1, c(45, 40, 5))
  expect_equal(d_with_lengths$vol, c(450, 80, 40))
+ expect_equal(d_with_lengths$active, c(TRUE, TRUE, FALSE))
 })
 
 test_that("canonicalize_dim_names works", {
@@ -49,6 +50,13 @@ test_that("canonicalize_dim_names works", {
   new <- canonicalize_dim_names(old)
   expect_equal(names(new)[3:6],
                c("dim_0_lo", "dim_0_hi", "dim_1_lo", "dim_1_hi"))
+})
+
+test_that("canonicalize_dim_names works when columns are out of order", {
+  d <- readRDS("example_regions.rds") %>% canonicalize_dim_names()
+  expect_equal(names(d),
+               c("iteration", "id", "parentID", "estimate", "errorest",
+                 "dim_0_lo", "dim_0_hi", "dim_1_lo", "dim_1_hi", "active"))
 })
 
 test_that("make_iteration_dataframe works", {
